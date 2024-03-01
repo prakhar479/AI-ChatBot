@@ -22,4 +22,8 @@ export const signupValidator = [
     body("lastname").isLength({ max: 32 }).withMessage("Lastname must be at most 32 characters long"),
     ...loginValidator,
 ];
+export const promptValidator = [
+    body("prompt").notEmpty().withMessage("Prompt is required"),
+    body("prompt").isLength({ max: 500 }).withMessage("Prompt must be at most 500 characters long"),
+];
 //# sourceMappingURL=validator.js.map

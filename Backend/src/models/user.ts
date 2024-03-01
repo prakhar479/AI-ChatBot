@@ -10,7 +10,7 @@ const chatsSchema = new mongoose.Schema({
     role: {
         type: String,
         required: true,
-        enum: ['user', 'admin'],
+        enum: ['user', 'admin','model'],
         default: 'user'
     },
     content: {

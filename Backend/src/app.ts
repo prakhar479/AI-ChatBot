@@ -23,7 +23,7 @@ app.use(morgan('dev'));
 
 // CORS middleware
 app.use(cors({
-    origin: '${FRONTEND_URL}',
+    origin: FRONTEND_URL,
     credentials: true
     }));
 
@@ -33,5 +33,6 @@ app.use("/api/v1", router);
 app.get('/', (req, res) => {
     res.send('API running');
 });
+
 
 export default app;

@@ -1,8 +1,9 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction, response } from "express";
 import { param } from "express-validator";
-import user  from "../models/user.js";
+import user from "../models/user.js";
 import { configureOpenAI } from "../config/openai-config.js";
-import { OpenAIApi , chatCompletionRequestMessage } from "openai";
+
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export const generateChatCompletion = async (
     req: Request,
@@ -10,19 +11,79 @@ export const generateChatCompletion = async (
     next: NextFunction
 ) => {
     const { prompt } = req.body;
-    const User = await user.findById(res.locals.jwtAuth.id);
-    if (!User) return res.status(401).json({ message: "User not Registered or Token Malfunction" });
+    try {
+        const User = await user.findById(res.locals.jwtAuth.id);
+        if (!User) return res.status(401).json({ message: "User not Registered or Token Malfunction" });
 
-    // grab chats from user for context
-    const context = User.chats.map(({ role, content }) => ({ role, content })) as ChatCompletionRequestMessage[];
-    context.push({ role: "user", content: prompt });
-    User.chats.push({ role: "user", content: prompt });
+        // grab chats from user for context and get in format for Google Gen AI
 
-    const config = configureOpenAI();
-    const OpenAI = new OpenAIApi(config);
-    const chatReponse = await OpenAI.createChatCompletion({
-        model: "gpt-3.5-turbo",
-        messages: context,
-    });
-    
+        // const context = User.chats.map(({ role, content }) => ({ role, content }));
+        // context.push({ role: "user", content: prompt });
+        User.chats.push({ role: "user", content: prompt });
+
+        // const config = configureOpenAI();
+        // const OpenAI = new OpenAIApi(config);
+        // const chatReponse = await OpenAI.createChatCompletion({
+        //     model: "gpt-3.5-turbo",
+        //     messages: context,
+        // });
+
+        const googleGenAI = new GoogleGenerativeAI(process.env.GOOGLE_GEN_AI_API_KEY);
+        const model = googleGenAI.getGenerativeModel({ model: "gemini-pro" });
+
+        const result = await model.generateContent(prompt);
+        const chatReponse = result.response.text();
+
+        User.chats.push({ role: "model", content: chatReponse });
+
+        await User.save();
+        return res.status(200).json({ chats: User.chats });
+    }
+    catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+}
+
+export const generateChatCompletionTest = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    console.log("Test Route");
+    // const { prompt } = req.body;
+    const prompt = "Why is the sky blue?";
+    console.log("Prompt: ", prompt);
+    try {
+        // const User = await user.findById(res.locals.jwtAuth.id);
+        // if (!User) return res.status(401).json({ message: "User not Registered or Token Malfunction" });
+
+        // grab chats from user for context and get in format for Google Gen AI
+
+        // const context = User.chats.map(({ role, content }) => ({ role, content }));
+        // context.push({ role: "user", content: prompt });
+        // User.chats.push({ role: "user", content: prompt });
+
+        // const config = configureOpenAI();
+        // const OpenAI = new OpenAIApi(config);
+        // const chatReponse = await OpenAI.createChatCompletion({
+        //     model: "gpt-3.5-turbo",
+        //     messages: context,
+        // });
+
+        const googleGenAI = new GoogleGenerativeAI(process.env.GOOGLE_GEN_AI_API_KEY);
+        const model = googleGenAI.getGenerativeModel({ model: "gemini-pro" });
+
+        const result = await model.generateContent(prompt);
+        const chatReponse = result.response.text();
+
+        // User.chats.push({ role: "model", content: chatReponse });
+
+        // await User.save();
+        return res.status(200).json({ response: chatReponse });
+    }
+    catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Server Error" });
+    }
 }

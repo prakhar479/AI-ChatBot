@@ -5,7 +5,6 @@ import router from './routes/index.js';
 import cookieParser from 'cookie-parser';
 import cors from "cors";
 import { FRONTEND_URL } from './utils/constants.js';
-
 // Load env variables
 config();
 // Init express
