@@ -1,12 +1,13 @@
 import { Router } from "express"
 import { verifyToken } from "../utils/token-manager.js";
 import { Validate, promptValidator } from "../utils/validator.js";
-import { generateChatCompletion, generateChatCompletionTest } from "../controllers/chat-controller.js";
+import { generateChatCompletion, getChatHistory, deleteChatHistory } from "../controllers/chat-controller.js";
 
 // Protected Routes
 const chatRouter = Router();
-chatRouter.get("/new", Validate(promptValidator), verifyToken, generateChatCompletion);
+chatRouter.post("/new", Validate(promptValidator), verifyToken, generateChatCompletion);
+chatRouter.get("/history", verifyToken, getChatHistory);
+chatRouter.delete("/clear", verifyToken, deleteChatHistory);
 
-chatRouter.get("/", generateChatCompletionTest); 
 
 export default chatRouter;

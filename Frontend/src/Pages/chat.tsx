@@ -4,7 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import { red } from '@mui/material/colors';
 import ChatItem from '../components/ChatItem';
 import { IoMdSend } from 'react-icons/io';
-import { useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
+import { getChatHistory, sendChatRequest } from '../helper/api-communicator';
+import toast from 'react-hot-toast';
 
 type ChatItem = {
   role: "user" | "model" | "admin",
@@ -16,14 +18,20 @@ export const Chat = () => {
   const InputRef = useRef<HTMLInputElement>(null);
 
   const [chats, setChats] = useState<ChatItem[]>([])
-  
+
   const handleInputSubmit = async () => {
     const prompt = InputRef.current?.value as string;
     // clear the input prompt
     InputRef.current!.value = "";
 
-    const newChat: ChatItem = { role: "user", content: prompt }
-    setChats((prev) => [...prev, newChat])
+    const newChat: ChatItem = { role: "user", content: prompt };
+    setChats((prev) => [...prev, newChat]);
+
+    // Send the prompt to the server
+    const response = await sendChatRequest(prompt);
+
+    // Add the response to the chat
+    setChats((prev) => [...prev, { role: "model", content: response.body }]);
 
   }
   const handleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -31,45 +39,27 @@ export const Chat = () => {
       handleInputSubmit()
     }
   }
-  
-  // const chats = [
-  //   {
-  //     role: "user",
-  //     content: "Hello"
-  //   },
-  //   {
-  //     role: "model",
-  //     content: "Hello, How can I help you today?"
-  //   },
-  //   {
-  //     role: "user",
-  //     content: "What is a Unicorn?"
-  //   },
-  //   {
-  //     role: "model",
-  //     content: "A unicorn is a legendary creature that has been described since antiquity as a beast with a single large, pointed, spiraling horn projecting from its forehead."
-  //   },
-  //   {
-  //     role: "user",
-  //     content: "What is the capital of India?"
-  //   },
-  //   {
-  //     role: "model",
-  //     content: "New Delhi"
-  //   },
-  //   {
-  //     role: "user",
-  //     content: "Why is water blue?"
-  //   },
-  //   {
-  //     role: "model",
-  //     content: "Water is blue because water absorbs colors in the red part of the light spectrum. Like a filter, this leaves behind colors in the blue part of the light spectrum for us to see."
-  //   },
-  // ]
+
+  // const handleDeleteChats = async () => {};
+
+  useLayoutEffect(() => {
+    if (auth?.isLoggedIn && auth?.user) {
+      toast.loading("Fetching chat history...", { id: "fetching-chat-history" });
+
+      // Fetch the chat history
+      getChatHistory().then((history) => {
+        setChats([...history.chats]);
+        toast.success("Chat history fetched", { id: "fetching-chat-history" });
+      }).catch((err) => {
+        toast.error("Error fetching chat history", { id: "fetching-chat-history" });
+        console.error(err);
+      });
+    }
+  },[auth]);
 
   return (
     <Box sx={{ display: 'flex', flex: 1, width: '100%', height: "100%", mt: 3, gap: 3 }}>
-      <Box sx={{ display: { md: "flex", xs: "none", sm: "none" }, flex: 0.2, flexDirection: 'column'}}>
+      <Box sx={{ display: { md: "flex", xs: "none", sm: "none" }, flex: 0.2, flexDirection: 'column' }}>
         <Box sx={{
           display: "flex",
           width: "100%",
@@ -137,7 +127,7 @@ export const Chat = () => {
           ))}
         </Box>
         <Box>
-          <div style={{width:"70vw", padding:"20px", borderRadius: 7, backgroundColor:"rgb(20,30,70)", display:"flex", margin:"auto", }}>
+          <div style={{ width: "70vw", padding: "20px", borderRadius: 7, backgroundColor: "rgb(20,30,70)", display: "flex", margin: "auto", }}>
             <input type='text' ref={InputRef} onKeyDown={handleEnter} style={{
               width: "75vw",
               background: "#F0F0F0",
@@ -149,7 +139,7 @@ export const Chat = () => {
               fontFamily: 'work-sans',
               borderRadius: 10,
             }} />
-            <IconButton sx={{ml:"auto", color:"white"}} onClick={handleInputSubmit} > <IoMdSend size={35}/></IconButton>
+            <IconButton sx={{ ml: "auto", color: "white" }} onClick={handleInputSubmit} > <IoMdSend size={35} /></IconButton>
           </div>
 
         </Box>

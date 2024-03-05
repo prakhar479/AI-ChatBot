@@ -46,4 +46,4 @@ const userSchema = new mongoose.Schema({
     chats: [chatsSchema],
 });
 
-export default mongoose.model("user", userSchema);
+export default mongoose.model("user", userSchema)
