@@ -19,14 +19,14 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
     // console.log(token);
     return new Promise((resolve, reject) => {
         if (!token) {
-            const error = new Error("Unauthorized");
-            reject(error);
+            // const error = new Error("Unauthorized");
+            // reject(error);
             return res.status(401).json({ message: "Unauthorized" });
         }
         jwt.verify(token, process.env.JWT_SECRET!, (err, decoded) => {
             if (err) {
-                const error = new Error("Token Expired");
-                reject(error);
+                // const error = new Error("Token Expired");
+                // reject(error);
                 return res.status(401).json({ message: "Token Expired" });
             } else {
                 // console.log("Token verified");

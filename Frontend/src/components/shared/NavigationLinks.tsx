@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom"
-import React from 'react'
 
 type Props = {
     to: string;
@@ -12,6 +11,7 @@ type Props = {
 const NavigationLinks = (props: Props) => {
     return (
         <Link
+            onClick={props.onClick}
             to={props.to}
             style={{ background: props.bg, color: props.textColor }}
             className="navigation-links"

@@ -1,5 +1,4 @@
 import { AppBar, Toolbar } from '@mui/material';
-import React from 'react'
 import Logo from './shared/Logo';
 import { useAuth } from '../context/AuthContext';
 import NavigationLinks from './shared/NavigationLinks';
@@ -38,7 +37,7 @@ export const Header = () => {
                             <NavigationLinks
                                 bg="#51538f"
                                 textColor='white'
-                                to="/sigup"
+                                to="/signup"
                                 text="Signup"
                             />
                         </>

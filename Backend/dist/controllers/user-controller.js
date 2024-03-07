@@ -26,6 +26,7 @@ export const getAllUsers = async (req, res, next) => {
 };
 export const UserSignUp = async (req, res, next) => {
     try {
+        // console.log(req);
         // check if user already exists
         const exists = await user.findOne({ email: req.body.email });
         if (exists) {
@@ -118,6 +119,30 @@ export const UserLogin = async (req, res, next) => {
         });
     }
 };
+export const UserLogout = async (req, res, next) => {
+    try {
+        // clear previous cookie
+        res.clearCookie(AUTH_COOKIE, {
+            path: "/",
+            domain: DOMAIN,
+            httpOnly: true,
+            signed: true,
+            secure: true,
+        });
+        // return user
+        return res.status(200).json({
+            success: true,
+            message: "User logged out"
+        });
+    }
+    catch (error) {
+        console.log(error);
+        // return error
+        return res.status(500).json({
+            error: error.message
+        });
+    }
+};
 export const verifyUser = async (req, res, next) => {
     try {
         // get user 
@@ -133,11 +158,7 @@ export const verifyUser = async (req, res, next) => {
                 error: "Permission denied"
             });
         }
-        // return user
-        return res.status(200).json({
-            name: userInfo.firstname + " " + userInfo.lastname,
-            email: userInfo.email,
-        });
+        return next();
     }
     catch (error) {
         console.log(error);

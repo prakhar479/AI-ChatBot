@@ -11,15 +11,16 @@ const ChatItem = ({ content, role }: {
     const auth = useAuth();
     return role === "model" ? (
         <Box sx={{ display: "flex", p: 2, bgcolor: "#49494912", my: 2, gap: 2 }}>
-            <Avatar sx={{ ml: "0" }} src="logo.svg" alt="G" />
+            <Avatar sx={{ ml: "0"}} src="logo.svg" alt="G" />
 
             <Box>
                 <Markdown
+                    className={"reponse-markdown"}
                     children={content}
                     components={{
                         code(props) {
-                            const { children, className, ...rest } = props
-                            const match = /language-(\w+)/.exec(className || '')
+                            const { children, className, ...rest } = props;
+                            const match = /language-(\w+)/.exec(className || '');
                             return match ? (
                                 <SyntaxHighlighter
                                     {...rest}
@@ -46,7 +47,7 @@ const ChatItem = ({ content, role }: {
                 {auth?.user?.name?.charAt(0)}{auth?.user?.name?.split(" ").pop()?.charAt(0)}
             </Avatar>
             <Box>
-                <Typography color={"white"} fontSize={"20px"}>
+                <Typography color={"white"} fontSize={"24px"}>
                     {content}
                 </Typography>
             </Box>

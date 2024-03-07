@@ -4,9 +4,10 @@ import { useAuth } from '../context/AuthContext';
 import { red } from '@mui/material/colors';
 import ChatItem from '../components/ChatItem';
 import { IoMdSend } from 'react-icons/io';
-import { useLayoutEffect, useRef, useState } from 'react';
-import { getChatHistory, sendChatRequest } from '../helper/api-communicator';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { getChatHistory, sendChatRequest, clearChatHistory } from '../helper/api-communicator';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 type ChatItem = {
   role: "user" | "model" | "admin",
@@ -16,6 +17,8 @@ type ChatItem = {
 export const Chat = () => {
   const auth = useAuth();
   const InputRef = useRef<HTMLInputElement>(null);
+
+  const navigate = useNavigate();
 
   const [chats, setChats] = useState<ChatItem[]>([])
 
@@ -27,11 +30,22 @@ export const Chat = () => {
     const newChat: ChatItem = { role: "user", content: prompt };
     setChats((prev) => [...prev, newChat]);
 
-    // Send the prompt to the server
-    const response = await sendChatRequest(prompt);
+    toast.promise(
+      sendChatRequest(prompt),
+      {
+        loading: "Processing your request...",
+        success: "Request processed successfully",
+        error: "Error processing request"
+      }
+    ).then((response) => {
+      // Add the response to the chat
+      setChats((prev) => [...prev, { role: "model", content: response.body }]);
+    }).catch((error) => {
+      console.error(error);
+    });
 
-    // Add the response to the chat
-    setChats((prev) => [...prev, { role: "model", content: response.body }]);
+    // // Add the response to the chat
+    // setChats((prev) => [...prev, { role: "model", content: response.body }]);
 
   }
   const handleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -40,7 +54,28 @@ export const Chat = () => {
     }
   }
 
-  // const handleDeleteChats = async () => {};
+  const handleDeleteChats = async () => {
+    try {
+      toast.loading("Clearing chat history...", { id: "clearing-chat-history" });
+
+      await clearChatHistory();
+      setChats([]);
+
+      toast.success("Chat history cleared", { id: "clearing-chat-history" });
+    } catch (error) {
+      toast.error("Error clearing chat history", { id: "clearing-chat-history" });
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    if (auth?.user){
+      toast.success(`Welcome ${auth.user.name}!`, { id: "user-welcome" });
+    }
+    else{
+      return navigate("/login");
+    }
+  }, [auth, navigate]);
 
   useLayoutEffect(() => {
     if (auth?.isLoggedIn && auth?.user) {
@@ -55,7 +90,7 @@ export const Chat = () => {
         console.error(err);
       });
     }
-  },[auth]);
+  }, [auth]);
 
   return (
     <Box sx={{ display: 'flex', flex: 1, width: '100%', height: "100%", mt: 3, gap: 3 }}>
@@ -87,7 +122,7 @@ export const Chat = () => {
             And much more...
           </Typography>
 
-          <Button sx={{
+          <Button onClick={handleDeleteChats} sx={{
             width: "auto",
             p: 1,
             my: "auto",
@@ -109,7 +144,7 @@ export const Chat = () => {
 
       <Box sx={{ display: "flex", flex: { md: 0.8, xs: 1, sm: 1 }, flexDirection: "column", px: 3, alignItems: 'center' }}>
         <Typography sx={{ mx: "auto", mb: 2, color: "white", fontSize: "60px", fontWeight: "600" }} textAlign="center" >
-          Model Google-Gemini
+          Powered By GEMINI
         </Typography>
         <Box sx={{
           width: "100%",

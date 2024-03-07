@@ -78,4 +78,17 @@ export const deleteChatHistory = async (
     req: Request,
     res: Response,
     next: NextFunction
-) => {};
+) => {
+    try {
+        const User = await user.findById(res.locals.jwtAuth.id);
+        if (!User) return res.status(401).json({ message: "User not Registered or Token Malfunction" });
+
+        User.chats = [] as any;
+        await User.save();
+        return res.status(200).json({ message: "Chat History Deleted" });
+    }
+    catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+};

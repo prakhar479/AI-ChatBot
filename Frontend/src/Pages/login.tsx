@@ -1,14 +1,16 @@
 import { Box, Button, Typography } from '@mui/material'
 import { BiLogIn } from "react-icons/bi";
-import React from 'react'
+import React, { useEffect } from 'react'
 import CustomInput from '../components/shared/CustomInput'
 import TouchRipple from '@mui/material/ButtonBase/TouchRipple';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const auth = useAuth();
+  const navigate = useNavigate();
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const data = new FormData(e.currentTarget)
@@ -25,6 +27,12 @@ const Login = () => {
       toast.error("Login Failed!", { id: 'login' });
     }
   }
+
+  useEffect(() => {
+    if (auth?.isLoggedIn) {
+      navigate('/chat')
+    }
+  }, [auth, navigate]);
 
   return (
     <Box width={'100%'} height={'100%'} display={'flex'} flex={1}>
